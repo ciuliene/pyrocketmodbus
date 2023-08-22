@@ -1,0 +1,20 @@
+{
+  "name": "pyrocketmodbus",
+  "description": "",
+  "main": "null",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "env": "source venv/bin/activate",
+    "start": "npm run env && python3 main.py",
+    "test": "python3 -m unittest discover -s './tests' -p 'test_*.py' -v",
+    "coverage": "coverage run --omit 'tests/*,*__init__.py' -m unittest discover -s ./tests -v && coverage lcov -o lcov.info && coverage report",
+    "build": "npm run remove-build && python3 setup.py sdist",
+    "remove-build": "rm -rf ./dist && rm -rf ./build && rm -rf ./pyrocketmodbus.egg-info",
+    "upload-test": "twine upload --repository-url https://test.pypi.org/legacy/ dist/*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
