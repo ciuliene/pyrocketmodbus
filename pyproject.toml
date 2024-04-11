@@ -1,0 +1,26 @@
+[project]
+name = "pyrocketmodbus"
+version = "1.0.0"
+authors = [
+  { name="Giuliano Errico", email="errgioul2@gmail.com" },
+]
+description = "Python package for Modbus communication"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dynamic = ["dependencies"]
+
+[project.urls]
+Homepage = "https://github.com/ciuliene/pyrocketmodbus"
+Issues = "https://github.com/ciuliene/pyrocketmodbus/issues"
+
+[build-system]
+requires = ["hatchling", "hatch-requirements-txt"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["requirements.txt"]
