@@ -5,12 +5,12 @@ PORTS = ["port0", "port1", 1]
 
 with patch("subprocess.getstatusoutput") as mock_getstatusoutput:
     mock_getstatusoutput.return_value = PORTS
-    from pyrocketmodbus.pyrocketmodbus import RocketModbus, RocketModbusException
+    from src.pyrocketmodbus import RocketModbus, RocketModbusException
 
 
 @patch("builtins.print")
 class TestRocketModbus(TestCase):
-    def __init__(self, methodName: str = ...) -> None:
+    def __init__(self, methodName: str = "") -> None:
         super().__init__(methodName)
 
     def setUp(self) -> None:
@@ -118,8 +118,9 @@ class TestRocketModbus(TestCase):
         rockMdb = self.init_RocketModbus("")
         with patch("serial.Serial"):
             rockMdb.open()
-            rockMdb._ser.readall = MagicMock()
-            rockMdb._ser.readall.return_value = [1, 3, 2, 44, 10, 36, 131]
+            rockMdb._ser.readall = MagicMock()  # type: ignore
+            rockMdb._ser.readall.return_value = [  # type: ignore
+                1, 3, 2, 44, 10, 36, 131]
 
             # Act
             result = rockMdb.get_message()
@@ -133,8 +134,8 @@ class TestRocketModbus(TestCase):
         rockMdb = self.init_RocketModbus("")
         with patch("serial.Serial"):
             rockMdb.open()
-            rockMdb._ser.readall = MagicMock()
-            rockMdb._ser.readall.return_value = None
+            rockMdb._ser.readall = MagicMock()  # type: ignore
+            rockMdb._ser.readall.return_value = None  # type: ignore
 
             # Act
             result = rockMdb.get_message()
@@ -142,6 +143,17 @@ class TestRocketModbus(TestCase):
         # Assert
         self.assertFalse(result[0])
         self.assertEqual(0, len(result[1][1]))
+
+    def test_getting_message_raises_exception_when_serial_port_is_not_open(self, *_):
+        # Arrange
+        rockMdb = self.init_RocketModbus()
+
+        # Act
+        with self.assertRaises(Exception) as ex:
+            rockMdb.get_message()
+
+        # Assert
+        self.assertEqual("Serial port is not open", str(ex.exception))
 
 #    ____ ____   ____
 #   / ___|  _ \ / ___|
@@ -151,7 +163,7 @@ class TestRocketModbus(TestCase):
 
     def test_calculate_crc_for_message_of_decimal_numbers(self, *_):
         # Arrange
-        msg = [1, 3, 0, 0, 0, 1]
+        msg = bytes([1, 3, 0, 0, 0, 1])
         rockMdb = self.init_RocketModbus()
 
         # Act
@@ -178,7 +190,7 @@ class TestRocketModbus(TestCase):
 
         with self.assertRaises(RocketModbusException) as ex:
             # Act
-            rockMdb.get_modbus_crc(msg)
+            rockMdb.get_modbus_crc(msg)  # type: ignore
 
         # Assert
         self.assertEqual("Invalid argument. Position: 4", str(ex.exception))
@@ -192,11 +204,12 @@ class TestRocketModbus(TestCase):
     def test_send_message_to_read_register(self, *_):
         # Arrange
         rockMdb = self.init_RocketModbus("")
+
         with patch("serial.Serial"):
             rockMdb.open()
-            rockMdb._ser.readall = MagicMock()
-            rockMdb._ser.readall.return_value = [1, 3, 2, 44, 10, 36, 131]
-
+            rockMdb._ser.readall = MagicMock()  # type: ignore
+            rockMdb._ser.readall.return_value = [  # type: ignore
+                1, 3, 2, 44, 10, 36, 131]
             # Act
             result = rockMdb.send_message(message_to_send=[1, 3, 0, 0, 0, 1])
 
@@ -211,8 +224,8 @@ class TestRocketModbus(TestCase):
         rockMdb = self.init_RocketModbus("")
         with patch("serial.Serial"):
             rockMdb.open()
-            rockMdb._ser.readall = MagicMock()
-            rockMdb._ser.readall.return_value = msg
+            rockMdb._ser.readall = MagicMock()  # type: ignore
+            rockMdb._ser.readall.return_value = msg  # type: ignore
             rockMdb.get_modbus_crc = MagicMock()
             rockMdb.get_modbus_crc.return_value = bytearray([0, 0])
 
@@ -223,13 +236,33 @@ class TestRocketModbus(TestCase):
         self.assertTrue(result[0])
         self.assertEqual(len(msg), len(result[1][1]))
 
+    def test_sending_message_skipping_response(self, *_):
+        # Arrange
+        msg = [1, 16, 3, 0, 0, 1, 2, 0, 30]
+
+        rockMdb = self.init_RocketModbus("")
+        with patch("serial.Serial"):
+            rockMdb.open()
+            rockMdb._ser.readall = MagicMock()  # type: ignore
+            rockMdb._ser.readall.return_value = msg  # type: ignore
+            rockMdb.get_modbus_crc = MagicMock()
+            rockMdb.get_modbus_crc.return_value = bytearray([0, 0])
+
+            # Act
+            result = rockMdb.send_message(
+                message_to_send=msg, skip_response=True)
+
+        # Assert
+        self.assertTrue(result[0])
+        self.assertEqual(0, len(result[1][1]))
+
     def test_receive_false_when_response_is_none(self, *_):
         # Arrange
         rockMdb = self.init_RocketModbus("")
         with patch("serial.Serial"):
             rockMdb.open()
-            rockMdb._ser.readall = MagicMock()
-            rockMdb._ser.readall.return_value = None
+            rockMdb._ser.readall = MagicMock()  # type: ignore
+            rockMdb._ser.readall.return_value = None  # type: ignore
 
             # Act
             result = rockMdb.send_message(message_to_send=[])
@@ -243,8 +276,8 @@ class TestRocketModbus(TestCase):
         rockMdb = self.init_RocketModbus("")
         with patch("serial.Serial"):
             rockMdb.open()
-            rockMdb._ser.readall = MagicMock()
-            rockMdb._ser.readall.return_value = []
+            rockMdb._ser.readall = MagicMock()  # type: ignore
+            rockMdb._ser.readall.return_value = []  # type: ignore
 
             # Act
             result = rockMdb.send_message(message_to_send=[])
@@ -258,8 +291,9 @@ class TestRocketModbus(TestCase):
         rockMdb = self.init_RocketModbus("")
         with patch("serial.Serial"):
             rockMdb.open()
-            rockMdb._ser.readall = MagicMock()
-            rockMdb._ser.readall.return_value = [1, 3, 2, 44, 10]
+            rockMdb._ser.readall = MagicMock()  # type: ignore
+            rockMdb._ser.readall.return_value = [  # type: ignore
+                1, 3, 2, 44, 10]
 
             # Act
             result = rockMdb.send_message(message_to_send=[1, 3, 0, 0, 0, 1])
@@ -268,6 +302,16 @@ class TestRocketModbus(TestCase):
         self.assertFalse(result[0])
         self.assertEqual(-3, result[1][1])
 
+    def test_send_message_raise_exception_when_open_is_closed(self, *_):
+        # Arrange
+        rockMdb = self.init_RocketModbus("")
+
+        # Act
+        with self.assertRaises(Exception) as ex:
+            rockMdb.send_message(message_to_send=[1, 3, 0, 0, 0, 1])
+
+        # Assert
+        self.assertEqual("Serial port is not open", str(ex.exception))
 
 #   _                   __  __                                
 #  | |                 |  \/  |                               
@@ -408,7 +452,8 @@ class TestRocketModbus(TestCase):
 
         # Act
         with self.assertRaises(BaseException) as ex:
-            rockMdb.log_message("malformed message", logger=logger_mock)
+            rockMdb.log_message("malformed message",  # type: ignore
+                                logger=logger_mock)
 
         # Assert
         self.assertIn("invalid", str(ex.exception))
@@ -421,7 +466,7 @@ class TestRocketModbus(TestCase):
 
         # Act
         with self.assertRaises(BaseException) as ex:
-            rockMdb.log_message(-1, logger=logger_mock)
+            rockMdb.log_message(-1, logger=logger_mock)  # type: ignore
 
         # Assert
         self.assertEqual("'int' object is not iterable", str(ex.exception))
@@ -432,8 +477,7 @@ class TestRocketModbus(TestCase):
 #  | |    | |/ _ \/ __|/ _ \
 #  | |____| | (_) \__ \  __/
 #   \_____|_|\___/|___/\___|
-                          
-                          
+
     def test_close_port(self, *_):
         # Arrange
         rockMdb = self.init_RocketModbus("")

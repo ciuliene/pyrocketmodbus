@@ -1,6 +1,7 @@
+from typing import Any
 import serial
 from subprocess import getstatusoutput as shell_command
-import logging
+from logging import Logger
 
 
 class RocketModbusException(Exception):
@@ -10,7 +11,7 @@ class RocketModbusException(Exception):
 
 class RocketModbus():
     def __init__(self):
-        self._ser = None
+        self._ser: serial.Serial | None = None
         return
 
     def get_serial_ports(self) -> list | str:
@@ -30,7 +31,7 @@ class RocketModbus():
 
         return portList[0] if len(portList) == 1 else portList
 
-    def open(self, port: str = None, timeout: float = 0.1) -> bool:
+    def open(self, port: str | None = None, timeout: float = 0.1) -> bool:
         """
             Open serial port
 
@@ -60,7 +61,7 @@ class RocketModbus():
             return False
         return True
 
-    def send_message(self, message_to_send: list = [], CRC: bool = False, skip_response: bool = False) -> tuple[bool | list]:
+    def send_message(self, message_to_send: list = [], CRC: bool = False, skip_response: bool = False) -> tuple[bool, tuple[list, Any]]:
         """
             Send message to slave
 
@@ -77,19 +78,29 @@ class RocketModbus():
                         - -2 if length of the response is zero
                         - -3 if CRC of the response is invalid
         """
+
+        if self._ser is None:
+            raise Exception("Serial port is not open")
+
         message = RocketModbus.__convert_msg_to_int(
             message=message_to_send)
         if CRC is False:
-            crc = self.get_modbus_crc(message)
+            crc = self.get_modbus_crc(bytes(message))
             message.append(crc[0])
             message.append(crc[1])
 
-        self._ser.write(message)
+        self._ser.write(bytes(message))
         self._ser.flush()
 
-        return self._receive(message=message) if skip_response is False else (True, (message, []))
+        if skip_response is False:
+            return self.__receive(bytes(message), skip_crc=CRC)
+        else:
+            return True, (message, [])
 
-    def _receive(self, message: str, skip_crc: bool = False) -> tuple[bool | list]:
+    def __receive(self, message: bytes, skip_crc: bool = False) -> tuple[bool, tuple[Any, int | list]]:
+        if self._ser is None:
+            raise Exception("Serial port is not open")  # pragma: no cover
+
         len_recv = 0
         receive = self._ser.readall()
 
@@ -111,9 +122,12 @@ class RocketModbus():
 
         return True, (message, response)
 
-    def get_message(self, skip_crc: bool = False) -> tuple[bool | list]:
+    def get_message(self, skip_crc: bool = False) -> tuple[bool, tuple[list, Any]]:
+        if self._ser is None:
+            raise Exception("Serial port is not open")
+
         try:
-            result, (send, receive) = self._receive(
+            result, (send, receive) = self.__receive(
                 message=self._ser.readall(), skip_crc=skip_crc)
             if result is False:
                 raise Exception()
@@ -121,7 +135,7 @@ class RocketModbus():
         except:
             return False, ([], [])
 
-    def get_modbus_crc(self, data: list) -> list:
+    def get_modbus_crc(self, data: bytes | list[str]) -> bytes:
         """
             Calculate Modbus CRC
 
@@ -148,13 +162,13 @@ class RocketModbus():
         except:
             raise RocketModbusException(f"Invalid argument. Position: {i}")
 
-    def log_message(self, message: list = [], logger: logging = None, prefix: str = None, separator: str = ' - '):
+    def log_message(self, message: list = [], logger: Logger | None = None, prefix: str | None = None, separator: str = ' - '):
         """
             Log message
 
             Arguments:
                 - message: list. A list of numbers
-                - logger: logging. Print message using a custome logger. Default is None (use 'print' function)
+                - logger: Logger. Print message using a custom logger. Default is None (use 'print' function)
                 - prefix: str. A prefix for the message
                 - separator: str. A separator for each number
         """
@@ -173,11 +187,13 @@ class RocketModbus():
         """
             Close opened port
         """
-        self._ser.close()
+        if self._ser is not None:
+            self._ser.close()
         self._ser = None
         return
 
-    def __convert_msg_to_int(message):
+    @staticmethod
+    def __convert_msg_to_int(message) -> list:
         int_message = []
 
         for b in message:
