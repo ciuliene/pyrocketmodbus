@@ -6,6 +6,8 @@ name: Build, test and Package
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:
+    branches: [ "new_build" ]
 
 jobs:
   build:
