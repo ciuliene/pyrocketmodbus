@@ -29,7 +29,8 @@ jobs:
         pip install coverage
     - name: Test application
       run: |
-        coverage run --omit tests/*,*__init__.py -m unittest discover -s ./tests -v && coverage lcov -o lcov.info && coverage report
+        python -m unittest discover ./tests -v
+        # coverage run --omit tests/*,*__init__.py -m unittest discover -s ./tests -v && coverage lcov -o lcov.info && coverage report
     - name: Package application
       run: |
         python -m pip install --upgrade build twine
