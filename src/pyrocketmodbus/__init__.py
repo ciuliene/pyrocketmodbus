@@ -1,3 +1,11 @@
+"""
+pyrocketmodbus.
+
+Python package for Modbus communication.
+"""
+
+__author__ = 'Giuliano Errico'
+
 from typing import Any
 import serial
 from subprocess import getstatusoutput as shell_command
