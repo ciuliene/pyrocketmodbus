@@ -5,8 +5,6 @@ name: Build, test and Package
 
 on:
   workflow_dispatch:
-    branches:
-      - new_build
 
 
 jobs:
