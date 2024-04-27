@@ -1,6 +1,6 @@
 [project]
 name = "pyrocketmodbus"
-version = "1.0.2"
+version = "1.0.3"
 authors = [
   { name="Giuliano Errico", email="errgioul2@gmail.com" },
 ]
@@ -24,10 +24,3 @@ build-backend = "hatchling.build"
 
 [tool.hatch.metadata.hooks.requirements_txt]
 files = ["requirements.txt"]
-
-[tool.hatch.build.targets.sdist]
-include = ["src"]
-only-include = ["src", "requirements.txt", "README.md", "LICENSE", "pyproject.toml"]
-
-[tool.hatch.build.targets.wheel]
-packages = ["src"]
