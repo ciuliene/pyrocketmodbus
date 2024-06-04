@@ -39,7 +39,7 @@ class RocketModbus():
 
         return portList[0] if len(portList) == 1 else portList
 
-    def open(self, port: str | None = None, timeout: float = 0.1) -> bool:
+    def open(self, port: str | None = None, baudrate: int = 9600, bytesize: int = 8, parity: str = "N", stopbits: float = 1, timeout: float = 0.1) -> bool:
         """
             Open serial port
 
@@ -63,7 +63,7 @@ class RocketModbus():
                     serial_port = default_port
             else:
                 serial_port = port
-            self._ser = serial.Serial(port=serial_port, timeout=timeout)
+            self._ser = serial.Serial(port=serial_port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, timeout=timeout)
         except Exception as ex:
             print(str(ex))
             return False
