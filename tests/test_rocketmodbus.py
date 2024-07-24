@@ -5,7 +5,7 @@ PORTS = ["port0", "port1", 1]
 
 with patch("subprocess.getstatusoutput") as mock_getstatusoutput:
     mock_getstatusoutput.return_value = PORTS
-    from src.pyrocketmodbus import RocketModbus, RocketModbusException
+    from src.pyrocketmodbus.pyrm import RocketModbus, RocketModbusException
 
 
 @patch("builtins.print")
