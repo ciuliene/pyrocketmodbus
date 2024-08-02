@@ -132,7 +132,10 @@ class RocketModbus():
             if result is False:
                 raise Exception()
             return result, (send, receive)
-        except:
+        except Exception as ex:
+            if isinstance(ex, KeyboardInterrupt): # pragma: no cover
+                raise ex
+            
             return False, ([], [])
 
     def get_modbus_crc(self, data: bytes | list[str]) -> bytes:
