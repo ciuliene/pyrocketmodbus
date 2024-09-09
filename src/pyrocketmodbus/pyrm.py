@@ -61,7 +61,7 @@ class RocketModbus():
             return False
         return True
 
-    def send_message(self, message_to_send: list = [], CRC: bool = False, skip_response: bool = False) -> tuple[bool, tuple[list, Any]]:
+    def send_message(self, message_to_send: list = [], skip_crc: bool = False, skip_response: bool = False) -> tuple[bool, tuple[list, Any]]:
         """
             Send message to slave
 
@@ -81,21 +81,26 @@ class RocketModbus():
 
         if self._ser is None:
             raise Exception("Serial port is not open")
-
-        message = RocketModbus.__convert_msg_to_int(
-            message=message_to_send)
-        if CRC is False:
-            crc = self.get_modbus_crc(bytes(message))
-            message.append(crc[0])
-            message.append(crc[1])
+        
+        message = self.prepare_message(message_to_send, skip_crc=skip_crc)
 
         self._ser.write(bytes(message))
         self._ser.flush()
 
         if skip_response is False:
-            return self.__receive(bytes(message), skip_crc=CRC)
+            return self.__receive(bytes(message), skip_crc=skip_crc)
         else:
             return True, (message, [])
+        
+    def prepare_message(self, message: list, skip_crc: bool = False) -> list:
+        new_message = RocketModbus.__convert_msg_to_int(
+        message=message)
+        if skip_crc is False:
+            crc = self.get_modbus_crc(bytes(new_message))
+            new_message.append(crc[0])
+            new_message.append(crc[1])
+
+        return new_message
 
     def __receive(self, message: bytes, skip_crc: bool = False, from_message: bool = False) -> tuple[bool, tuple[Any, int | list]]:
         if self._ser is None:

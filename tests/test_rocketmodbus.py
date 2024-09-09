@@ -104,6 +104,39 @@ class TestRocketModbus(TestCase):
         # Assert
         self.assertFalse(result)
 
+#   _____                                 __  __                                    
+#  |  __ \                               |  \/  |                                   
+#  | |__) | __ ___ _ __   __ _ _ __ ___  | \  / | ___  ___ ___ ___  __ _  __ _  ___ 
+#  |  ___/ '__/ _ \ '_ \ / _` | '__/ _ \ | |\/| |/ _ \/ __/ __/ __|/ _` |/ _` |/ _ \
+#  | |   | | |  __/ |_) | (_| | | |  __/ | |  | |  __/\__ \__ \__ \ (_| | (_| |  __/
+#  |_|   |_|  \___| .__/ \__,_|_|  \___| |_|  |_|\___||___/___/___/\__,_|\__, |\___|
+#                 | |                                                     __/ |     
+#                 |_|                                                    |___/      
+
+    def test_preparing_message_with_crc_returns_expected_message(self, *_):
+        # Arrange
+        rockMdb = self.init_RocketModbus("")
+        message = [1, 3, 0, 0, 0, 1]
+
+        # Act
+        result = rockMdb.prepare_message(message, skip_crc=False)
+
+        # Assert
+        self.assertEqual(8, len(result))
+        self.assertEqual([1, 3, 0, 0, 0, 1, 132, 10], result)
+
+    def test_preparing_message_without_crc_returns_expected_message(self, *_):
+        # Arrange
+        rockMdb = self.init_RocketModbus("")
+        message = [1, 3, 0, 0, 0, 1]
+
+        # Act
+        result = rockMdb.prepare_message(message, skip_crc=True)
+
+        # Assert
+        self.assertEqual(6, len(result))
+        self.assertEqual([1, 3, 0, 0, 0, 1], result)
+
 #    _____      _     __  __                                
 #   / ____|    | |   |  \/  |                               
 #  | |  __  ___| |_  | \  / | ___  ___ ___  __ _  __ _  ___ 
