@@ -137,6 +137,30 @@ class TestRocketModbus(TestCase):
         self.assertEqual(6, len(result))
         self.assertEqual([1, 3, 0, 0, 0, 1], result)
 
+    def test_preparing_message_with_string_returns_expected_message(self, *_):
+        # Arrange
+        rockMdb = self.init_RocketModbus("")
+        message = ["0x01", "0x03", "'test'", "0x00", "0x00", "0x01"]
+
+        # Act
+        result = rockMdb.prepare_message(message, skip_crc=False)
+        
+        # Assert
+        self.assertEqual(11, len(result))
+        self.assertEqual([0x01, 0x03, 0x74, 0x65, 0x73, 0x74, 0x00, 0x00, 0x01, 0xA5, 0x7C], result)
+
+    def test_preparing_message_with_invalid_string_raises_exception(self, *_):
+        # Arrange
+        rockMdb = self.init_RocketModbus("")
+        message = ["0x01", "0x03", "'test", "0x00", "0x00", "0x01"]
+
+        # Act & Assert
+        with self.assertRaises(RocketModbusException) as ex:
+            rockMdb.prepare_message(message, skip_crc=False)
+
+        # Assert
+        self.assertEqual("Invalid argument. 2: 'test", str(ex.exception))
+
 #    _____      _     __  __                                
 #   / ____|    | |   |  \/  |                               
 #  | |  __  ___| |_  | \  / | ___  ___ ___  __ _  __ _  ___ 
@@ -489,7 +513,7 @@ class TestRocketModbus(TestCase):
                                 logger=logger_mock)
 
         # Assert
-        self.assertIn("invalid", str(ex.exception))
+        self.assertIn("invalid", str(ex.exception).lower())
 
     def test_logging_number_raises_exception(self, *_):
         # Arrange
