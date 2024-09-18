@@ -201,12 +201,24 @@ class RocketModbus():
         return
 
     @staticmethod
-    def __convert_msg_to_int(message) -> list:
+    def __convert_msg_to_int(message: list) -> list:
         int_message = []
 
-        for b in message:
+        for i, b in enumerate(message):
             if isinstance(b, str):
-                b = int(b, 16)
+                if b.startswith("0x"):
+                    b = int(b, base=16)
+                elif b.startswith("'") and b.endswith("'") and len(b) > 2:
+                    str_chars = b[1:-1]
+                    for c in str_chars:
+                        b = ord(c)
+                        int_message.append(b)
+                    continue
+                else:
+                    try:
+                        b = int(b, base=16)
+                    except ValueError:
+                        raise RocketModbusException(f"Invalid argument. {i}: {b}")
 
             int_message.append(b)
 
