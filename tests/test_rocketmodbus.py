@@ -156,10 +156,22 @@ class TestRocketModbus(TestCase):
 
         # Act & Assert
         with self.assertRaises(RocketModbusException) as ex:
-            rockMdb.prepare_message(message, skip_crc=False)
+            rockMdb.prepare_message(message)
 
         # Assert
         self.assertEqual("Invalid argument. 2: 'test", str(ex.exception))
+
+    def test_preparing_message_with_spaced_string_returns_expected_message(self, *_):
+        # Arrange
+        rockMdb = self.init_RocketModbus("")
+        message = ["0x01", "'test with spaces'", "0x03"]
+
+        # Act
+        result = rockMdb.prepare_message(message, skip_crc=True)
+        
+        # Assert
+        self.assertEqual(18, len(result))
+        self.assertEqual([0x01, 0x74, 0x65, 0x73, 0x74, 0x20, 0x77, 0x69, 0x74, 0x68, 0x20, 0x73, 0x70, 0x61, 0x63, 0x65, 0x73, 0x03], result)
 
 #    _____      _     __  __                                
 #   / ____|    | |   |  \/  |                               
