@@ -2,6 +2,7 @@ from typing import Any
 import serial
 from subprocess import getstatusoutput as shell_command
 from logging import Logger
+from time import sleep
 
 
 class RocketModbusException(Exception):
@@ -61,7 +62,7 @@ class RocketModbus():
             return False
         return True
 
-    def send_message(self, message_to_send: list = [], skip_crc: bool = False, skip_response: bool = False) -> tuple[bool, tuple[list, Any]]:
+    def send_message(self, message_to_send: list = [], skip_crc: bool = False, skip_response: bool = False, timeout: float | None = None) -> tuple[bool, tuple[list, Any]]:
         """
             Send message to slave
 
@@ -86,6 +87,9 @@ class RocketModbus():
 
         self._ser.write(bytes(message))
         self._ser.flush()
+
+        if timeout is not None:
+            sleep(timeout)
 
         if skip_response is False:
             return self.__receive(bytes(message), skip_crc=skip_crc)

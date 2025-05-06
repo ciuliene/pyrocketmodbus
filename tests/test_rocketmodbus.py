@@ -286,6 +286,22 @@ class TestRocketModbus(TestCase):
         self.assertTrue(result[0])
         self.assertEqual(7, len(result[1][1]))
 
+    def test_send_message_to_read_register_with_timeout(self, mock_sleep, *_):
+        # Arrange
+        rockMdb = self.init_RocketModbus("")
+
+        with patch("serial.Serial"):
+            rockMdb.open()
+            rockMdb._ser.readall = MagicMock()  # type: ignore
+            rockMdb._ser.readall.return_value = [  # type: ignore
+                1, 3, 2, 44, 10, 36, 131]
+            # Act
+            result = rockMdb.send_message(message_to_send=[1, 3, 0, 0, 0, 1], timeout=0)
+
+        # Assert
+        self.assertTrue(result[0])
+        self.assertEqual(7, len(result[1][1]))
+
     def test_send_message_to_write_register(self, *_):
         # Arrange
         msg = [1, 16, 3, 0, 0, 1, 2, 0, 30]
